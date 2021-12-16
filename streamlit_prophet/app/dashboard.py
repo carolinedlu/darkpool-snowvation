@@ -84,6 +84,7 @@ conn = init_connection()
 
 #Select Table
 
+@st.experimental_memo
 def run_query(query):
     with conn.cursor() as cur:
         cur.execute(query)
@@ -98,7 +99,8 @@ def run_query(query):
         #st.write(query_text)
         if option:
             run_query2(query_text)
-        
+
+@st.experimental_memo            
 def run_query2(query_text):
     with conn.cursor() as cur:
         cur.execute(query_text)
