@@ -1,11 +1,9 @@
 from typing import Any, Dict, List
-
 import streamlit as st
 import snowflake.connector
 import plotly.figure_factory as ff
 import numpy as np
 import altair as alt
-
 from streamlit_prophet.lib.dataprep.clean import clean_df
 from streamlit_prophet.lib.dataprep.format import (
     add_cap_and_floor_cols,
@@ -71,8 +69,7 @@ with st.expander("What is darkpool?", expanded=False):
     st.write("")
 st.write("")
 
-# Headers   
-
+# Headers
 st.subheader("Train Your Data")
 st.caption("Snowflake Account = SNOWCAT2")
 st.caption("Snowflake Database = DEMAND")
@@ -83,7 +80,6 @@ def init_connection():
 conn = init_connection()
 
 #Select Table
-
 @st.experimental_memo
 def run_query(query):
     with conn.cursor() as cur:
@@ -120,7 +116,6 @@ if st.button('Run Baseline Analysis'):
         df = cur.fetch_pandas_all()
         baseline = df["AUC"]
         st.write(baseline)
-
     run_query("select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';")            
 
 #Analyze boost
@@ -167,8 +162,8 @@ run_query("select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, con
 
 # Execute Boost
 st.subheader("Auto-Boost Your Model")
-
 boost=st.checkbox("Auto-boost my model",value=False,key='boost')
+
 if boost:
     def run_query(query_text):
         with conn.cursor() as cur:
@@ -195,4 +190,4 @@ if st.button('Run Inference'):
         st.write("$277.40 total boost fee, distributed to:")
         st.image(load_image("pie.png"), use_column_width=True)
 
-    run_query("select * from darkpool_common.ml.demand1_scoring_output limit 20;")            
+    run_query("select * from darkpool_common.ml.demand1_scoring_output limit 20;")
