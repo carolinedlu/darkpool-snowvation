@@ -169,7 +169,7 @@ if 'pricing_button_clicked' not in st.session_state:
             
 # Execute Boost
 st.subheader("Auto-Boost Your Model")
-boost=st.checkbox("Auto-boost my model",value=False,key='boost')
+#boost=st.checkbox("Auto-boost my model",value=False,key='boost')
 boost_query_text="select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');"
 
 @st.experimental_memo(suppress_st_warning=True)
@@ -178,11 +178,13 @@ def run_boost_query(boost_query):
         cur.execute(boost_query)
         df = cur.fetch_pandas_all()
         option = st.selectbox('Select your dataset for inference', df)
-
-if boost:
-    run_boost_query(boost_query_text)
-else:
-    run_generic_query(boost_query_text)
+        
+if 'boost_button_clicked' not in st.session_state:
+    if st.button('Auto-boost my model'):
+        st.session_state['boost_button_clicked'] = 'clicked'
+        run_analyze_query(boost_query_text)
+    else:
+        run_generic_query(boost_query_text)  
     
 @st.experimental_memo(suppress_st_warning=True)
 def run_interference_query(interference_query):
@@ -198,5 +200,7 @@ def run_interference_query(interference_query):
     st.image(load_image("pie.png"), use_column_width=True)
 
 interference_query_text="select * from darkpool_common.ml.demand1_scoring_output limit 20;"
-if st.button('Run Interference'):
-    run_interference_query(interference_query_text)  
+if 'interference_button_clicked' not in st.session_state:
+    if st.button('Run Interference'):
+        st.session_state['inteference_button_clicked'] = 'clicked'
+        run_interference_query(interference_query_text)  
