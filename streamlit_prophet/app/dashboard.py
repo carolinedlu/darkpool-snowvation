@@ -114,16 +114,15 @@ def run_baseline_analysis_query(baseline_analysis_query):
         cur.execute(baseline_analysis_query)      
         df = cur.fetch_pandas_all()
         baseline = df["AUC"]
-        st.write(baseline)      
+        st.write(baseline)   
 
 if 'baseline_button_clicked' not in st.session_state:
     if st.button('Run Baseline Analysis'):
         st.session_state['baseline_button_clicked'] = 'clicked'
         baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
-        run_baseline_analysis_query(baseline_analysis_query_text)     
+        run_baseline_analysis_query(baseline_analysis_query_text)    
 
 #Analyze boost
-## Add column + line chart 
 #analyze = st.checkbox("Show me my potential accuracy boost",value=False,key='analyze')
 analyze_query_text = "select distinct TRAINING_JOB as SUPPLIER, AUC, AUC-(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline')  as BOOST_POINTS, concat(to_varchar(to_numeric((AUC/(select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1)*100,10,0)),'%') as PERCENTAGE_IMPROVEMENT  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB not in ('baseline');"
 
@@ -147,7 +146,7 @@ if 'analyze_button_clicked' not in st.session_state:
 
 # Show Price
 st.subheader("Pricing Model")
-pricing = st.checkbox("Show me my pricing model",value=False,key='analyze')
+#pricing = st.checkbox("Show me my pricing model",value=False,key='analyze')
 pricing_query_text = "select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, concat(cast(cast(INCREASED_ACCURACY*100 as numeric)as varchar), '%') as INCREASED_ACCURACY,cast(TOTAL_ROWS as varchar) as TOTAL_ROWS from DARKPOOL_COMMON.PUBLIC.PRICING_OUTPUT join (select distinct AUC,10,2/(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1 as INCREASED_ACCURACY, TOTAL_ROWS  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'boost_all') group by 2,3;"
 
 @st.experimental_memo(suppress_st_warning=True)
@@ -161,10 +160,12 @@ def run_pricing_query(pricing_query):
         col1.metric("Basis Points of Boost","2774")
         col2.metric("Price Per Thousand Rows Scored","$27.74")
 
-if pricing:
-    run_pricing_query(pricing_query_text)
-else:
-    run_generic_query(pricing_query_text)
+if 'pricing_button_clicked' not in st.session_state:
+    if st.button('Show me my pricing model'):
+        st.session_state['pricing_button_clicked'] = 'clicked'
+        run_analyze_query(pricing_query_text)
+    else:
+        run_generic_query(pricing_query_text)  
             
 # Execute Boost
 st.subheader("Auto-Boost Your Model")
