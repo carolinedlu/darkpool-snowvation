@@ -81,100 +81,105 @@ conn = init_connection()
 
 #Select Table
 @st.experimental_memo
-def run_query(query):
+def run_initial_query(initial_query):
     with conn.cursor() as cur:
         cur.execute(query)
         # Return a Pandas DataFrame containing all of the results.
         df = cur.fetch_pandas_all()
         option = st.selectbox('Select your dataset', df)
         text1 = "select COLUMN_NAME from DEMAND1.INFORMATION_SCHEMA.COLUMNS where concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) = '"
-        #text2 = "DEMAND.DATA.CUSTOMERS"
-        text2 = option
         text3 = "' order by 1 asc;"   
-        query_text = text1+text2+text3
-        #st.write(query_text)
+        query_text = text1+option+text3
         if option:
-            run_query2(query_text)
+            run_second_query(query_text)
 
 @st.experimental_memo            
-def run_query2(query_text):
+def run_second_query(second_query):
     with conn.cursor() as cur:
         cur.execute(query_text)
         # Return a Pandas DataFrame containing all of the results.
         df = cur.fetch_pandas_all()
         option2 = st.selectbox('Select your target column', df)
-        #if option2:
-        #    st.write('You have selected dependent variable ',option2)
-        #st.write(option)       
         
-run_query("select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');") 
+@experimental_memo
+def run_generic_query(generic_query):
+    with conn.cursor() as cur:
+        cur.execute(generic_query)
+        
+run_initial_query("select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');") 
 
-if st.button('Run Baseline Analysis'):
-    def run_query(query_text2):
-      with conn.cursor() as cur:
-        cur.execute(query_text2)      
+@experimental_memo
+def run_baseline_analysis_query(baseline_analysis_query):
+    with conn.cursor() as cur:
+        cur.execute(baseline_analysis_query)      
         df = cur.fetch_pandas_all()
         baseline = df["AUC"]
-        st.write(baseline)
-    run_query("select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';")            
+        st.write(baseline)      
+
+if st.button('Run Baseline Analysis'):
+    baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
+    run_baseline_analysis_query(baseline_analysis_query_text)     
 
 #Analyze boost
 ## Add column + line chart 
 st.subheader("Analyze Potential Boost")
 analyze = st.checkbox("Show me my potential accuracy boost",value=False,key='analyze')
+analyze_query_text = "select distinct TRAINING_JOB as SUPPLIER, AUC, AUC-(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline')  as BOOST_POINTS, concat(to_varchar(to_numeric((AUC/(select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1)*100,10,0)),'%') as PERCENTAGE_IMPROVEMENT  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB not in ('baseline');"
+
+@experimental_memo
+def run_analyze_query(analyze_query)
+    with conn.cursor() as cur:
+        cur.execute(analyze_query)
+        # Return a Pandas DataFrame containing all of the results.
+        df = cur.fetch_pandas_all()
+        base = alt.Chart(df).mark_bar().encode(x='SUPPLIER', y='BOOST_POINTS')
+        st.altair_chart(base, use_container_width=True)
+        st.dataframe(df)
 
 if analyze:
-    def run_query(query):
-        with conn.cursor() as cur:
-            cur.execute(query)
-            # Return a Pandas DataFrame containing all of the results.
-            df = cur.fetch_pandas_all()
-            base = alt.Chart(df).mark_bar().encode(x='SUPPLIER', y='BOOST_POINTS')
-            st.altair_chart(base, use_container_width=True)
-            st.dataframe(df)
+    run_analyze_query(analyze_query)
 else:
-    def run_query(query):
-        with conn.cursor() as cur:
-            cur.execute(query)
-                
-run_query("select distinct TRAINING_JOB as SUPPLIER, AUC, AUC-(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline')  as BOOST_POINTS, concat(to_varchar(to_numeric((AUC/(select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1)*100,10,0)),'%') as PERCENTAGE_IMPROVEMENT  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB not in ('baseline');")
+    run_generic_query(analyze_query_text)
 
 # Show Price
 st.subheader("Pricing Model")
 pricing = st.checkbox("Show me my pricing model",value=False,key='analyze')
+pricing_query_text = "select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, concat(cast(cast(INCREASED_ACCURACY*100 as numeric)as varchar), '%') as INCREASED_ACCURACY,cast(TOTAL_ROWS as varchar) as TOTAL_ROWS from DARKPOOL_COMMON.PUBLIC.PRICING_OUTPUT join (select distinct AUC,10,2/(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1 as INCREASED_ACCURACY, TOTAL_ROWS  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'boost_all') group by 2,3;"
+
+@experimental_memo
+def run_pricing_query(pricing_query)
+    with conn.cursor() as cur:
+        cur.execute(pricing_query)
+        # Return a Pandas DataFrame containing all of the results.
+        df = cur.fetch_pandas_all()
+        st.write("The price is calculated as $0.01 per basis point of boost per 1000 rows scored.")
+        col1,col2= st.columns(2)
+        col1.metric("Basis Points of Boost","2774")
+        col2.metric("Price Per Thousand Rows Scored","$27.74")
 
 if pricing:
-    def run_query(query):
-        with conn.cursor() as cur:
-            cur.execute(query)
-            # Return a Pandas DataFrame containing all of the results.
-            df = cur.fetch_pandas_all()
-            st.write("The price is calculated as $0.01 per basis point of boost per 1000 rows scored.")
-            col1,col2= st.columns(2)
-            col1.metric("Basis Points of Boost","2774")
-            col2.metric("Price Per Thousand Rows Scored","$27.74")
+    run_pricing_query(pricing_query_text)
 else:
-    def run_query(query):
-        with conn.cursor() as cur:
-            cur.execute(query)
+    run_generic_query(pricing_query_text)
             
-run_query("select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, concat(cast(cast(INCREASED_ACCURACY*100 as numeric)as varchar), '%') as INCREASED_ACCURACY,cast(TOTAL_ROWS as varchar) as TOTAL_ROWS from DARKPOOL_COMMON.PUBLIC.PRICING_OUTPUT join (select distinct AUC,10,2/(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1 as INCREASED_ACCURACY, TOTAL_ROWS  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'boost_all') group by 2,3;") 
-
 # Execute Boost
 st.subheader("Auto-Boost Your Model")
 boost=st.checkbox("Auto-boost my model",value=False,key='boost')
 boost_query_text="select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');"
 
-if boost:
+@experimental_memo
+def run_boost_query(boost_query)
     with conn.cursor() as cur:
-        cur.execute(boost_query_text)
+        cur.execute(boost_query)
         df = cur.fetch_pandas_all()
         option = st.selectbox('Select your dataset for inference', df)
+
+if boost:
+    run_boost_query(boost_query_text)
 else:
-    with conn.cursor() as cur:
-        cur.execute(boost_query_text) 
+    run_generic_query(boost_query_text) 
     
-if st.button('Run Inference'):  
+if st.button('Run Inference'):
     with conn.cursor() as cur:
         cur.execute("select * from darkpool_common.ml.demand1_scoring_output limit 20;")      
         df = cur.fetch_pandas_all()
