@@ -116,11 +116,8 @@ def run_baseline_analysis_query(baseline_analysis_query):
         baseline = df["AUC"]
         st.write(baseline)      
 
-placeholder = st.empty()
 if 'baseline_button_clicked' not in st.session_state:
-    baseline_button = placeholder.button('Run Baseline Analysis')
-    if baseline_button:
-        placeholder.empty()
+    if st.button('Run Baseline Analysis'):
         st.session_state['baseline_button_clicked'] = 'clicked'
         baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
         run_baseline_analysis_query(baseline_analysis_query_text)     
@@ -141,15 +138,12 @@ def run_analyze_query(analyze_query):
         st.dataframe(df)
 
 st.subheader("Analyze Potential Boost")
-analyze_placeholder = st.empty()
 if 'analyze_button_clicked' not in st.session_state:
-    analyze_button = placeholder.button('Show me my potential accuracy boost')
-    if analyze_button:
-        analyze_placeholder.empty()
+    if st.button('Show me my potential accuracy boost'):
         st.session_state['analyze_button_clicked'] = 'clicked'
         run_analyze_query(analyze_query_text)
-else:
-  run_generic_query(analyze_query_text)  
+    else:
+        run_generic_query(analyze_query_text)  
 
 # Show Price
 st.subheader("Pricing Model")
