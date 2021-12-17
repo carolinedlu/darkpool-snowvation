@@ -163,24 +163,20 @@ run_query("select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, con
 # Execute Boost
 st.subheader("Auto-Boost Your Model")
 boost=st.checkbox("Auto-boost my model",value=False,key='boost')
+boost_query_text="select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');"
 
 if boost:
-    def run_query(query_text):
-        with conn.cursor() as cur:
-            cur.execute(query_text)      
-            df = cur.fetch_pandas_all()
-            option = st.selectbox('Select your dataset for inference', df)
+    with conn.cursor() as cur:
+        cur.execute(boost_query_text)
+        df = cur.fetch_pandas_all()
+        option = st.selectbox('Select your dataset for inference', df)
 else:
-     def run_query(query):
-        with conn.cursor() as cur:
-            cur.execute(query)         
-        
-run_query("select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');")        
+    with conn.cursor() as cur:
+        cur.execute(boost_query_text) 
     
-if st.button('Run Inference'):
-    def run_query(query_text2):
-      with conn.cursor() as cur:
-        cur.execute(query_text2)      
+if st.button('Run Inference'):  
+    with conn.cursor() as cur:
+        cur.execute("select * from darkpool_common.ml.demand1_scoring_output limit 20;")      
         df = cur.fetch_pandas_all()
         st.write("Total Rows scored = 10,000.  Cost of boost = $277.40.")
         st.write ("See a sample of your inferenced data here:")
@@ -189,5 +185,3 @@ if st.button('Run Inference'):
         st.subheader("Darkpool Weighted Revenue Distribution to Suppliers")
         st.write("$277.40 total boost fee, distributed to:")
         st.image(load_image("pie.png"), use_column_width=True)
-
-    run_query("select * from darkpool_common.ml.demand1_scoring_output limit 20;")
