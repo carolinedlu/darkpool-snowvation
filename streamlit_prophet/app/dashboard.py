@@ -128,7 +128,7 @@ if 'baseline_button_clicked' not in st.session_state:
 #Analyze boost
 ## Add column + line chart 
 st.subheader("Analyze Potential Boost")
-analyze = st.checkbox("Show me my potential accuracy boost",value=False,key='analyze')
+#analyze = st.checkbox("Show me my potential accuracy boost",value=False,key='analyze')
 analyze_query_text = "select distinct TRAINING_JOB as SUPPLIER, AUC, AUC-(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline')  as BOOST_POINTS, concat(to_varchar(to_numeric((AUC/(select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1)*100,10,0)),'%') as PERCENTAGE_IMPROVEMENT  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB not in ('baseline');"
 
 @st.experimental_memo(suppress_st_warning=True)
@@ -140,11 +140,16 @@ def run_analyze_query(analyze_query):
         base = alt.Chart(df).mark_bar().encode(x='SUPPLIER', y='BOOST_POINTS')
         st.altair_chart(base, use_container_width=True)
         st.dataframe(df)
-
-if analyze:
-    run_analyze_query(analyze_query_text)
+        
+analyze_placeholder = st.empty()
+if 'analyze_button_clicked' not in st.session_state:
+    analyze_button = placeholder.button('Show me my potential accuracy boost')
+    if analyze_button:
+        analyze_placeholder.empty()
+        st.session_state['analyze_button_clicked'] = 'clicked'
+        run_analyze_query(analyze_query_text)
 else:
-    run_generic_query(analyze_query_text)
+  run_generic_query(analyze_query_text)  
 
 # Show Price
 st.subheader("Pricing Model")
