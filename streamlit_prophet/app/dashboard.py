@@ -137,7 +137,7 @@ def run_analyze_query(analyze_query):
         st.dataframe(df)
 
 if analyze:
-    run_analyze_query(analyze_query)
+    run_analyze_query(analyze_query_text)
 else:
     run_generic_query(analyze_query_text)
 
@@ -192,6 +192,7 @@ def run_interference_query(interference_query):
     st.write("$277.40 total boost fee, distributed to:")
     st.image(load_image("pie.png"), use_column_width=True)
 
+interference_query_text="select * from darkpool_common.ml.demand1_scoring_output limit 20;"
 run_interference = st.button('Run Inteference')
 if run_interference:
-    run_interference_query("select * from darkpool_common.ml.demand1_scoring_output limit 20;")  
+    run_interference_query(interference_query_text)  
