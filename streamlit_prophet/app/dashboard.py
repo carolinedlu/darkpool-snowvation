@@ -182,8 +182,8 @@ else:
 @st.experimental_memo(suppress_st_warning=True)
 def run_interference_query(interference_query):
     with conn.cursor() as cur:
-    cur.execute(interference_query)      
-    df = cur.fetch_pandas_all()
+        cur.execute(interference_query)      
+        df = cur.fetch_pandas_all()
     st.write("Total Rows scored = 10,000.  Cost of boost = $277.40.")
     st.write ("See a sample of your inferenced data here:")
     st.write(df)
