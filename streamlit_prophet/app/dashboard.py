@@ -197,5 +197,5 @@ def run_interference_query(interference_query):
     st.image(load_image("pie.png"), use_column_width=True)
 
 interference_query_text="select * from darkpool_common.ml.demand1_scoring_output limit 20;"
-if st.button('Run Inteference'):
+if st.button('Run Interference'):
     run_interference_query(interference_query_text)  
