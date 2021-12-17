@@ -131,8 +131,8 @@ if analyze:
             df = cur.fetch_pandas_all()
             base = alt.Chart(df).mark_bar().encode(x='SUPPLIER', y='BOOST_POINTS')
             st.altair_chart(base, use_container_width=True)
-            st.dataframe(df)   
- else:
+            st.dataframe(df)
+else:
     def run_query(query):
         with conn.cursor() as cur:
             cur.execute(query)
