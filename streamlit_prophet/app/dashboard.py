@@ -83,7 +83,7 @@ conn = init_connection()
 @st.experimental_memo
 def run_initial_query(initial_query):
     with conn.cursor() as cur:
-        cur.execute(query)
+        cur.execute(initial_query)
         # Return a Pandas DataFrame containing all of the results.
         df = cur.fetch_pandas_all()
         option = st.selectbox('Select your dataset', df)
@@ -96,7 +96,7 @@ def run_initial_query(initial_query):
 @st.experimental_memo            
 def run_second_query(second_query):
     with conn.cursor() as cur:
-        cur.execute(query_text)
+        cur.execute(second_query)
         # Return a Pandas DataFrame containing all of the results.
         df = cur.fetch_pandas_all()
         option2 = st.selectbox('Select your target column', df)
