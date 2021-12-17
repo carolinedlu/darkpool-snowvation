@@ -116,13 +116,14 @@ def run_baseline_analysis_query(baseline_analysis_query):
         baseline = df["AUC"]
         st.write(baseline)      
 
-if st.button('Run Baseline Analysis'):
-    if 'baseline_clicked' not in st.session_state:
-        st.session_state['baseline_button_clicked'] = 'clicked'
-        st.write('Baseline analysis is done!')
-    else:
-        baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
-        run_baseline_analysis_query(baseline_analysis_query_text)     
+placeholder = st.empty()
+if placeholder.button('Run Baseline Analysis'):
+    placeholder.empty()    
+#     if 'baseline_clicked' not in st.session_state:
+#         st.session_state['baseline_button_clicked'] = 'clicked'
+#         st.write('Baseline analysis is done!')
+    baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
+    run_baseline_analysis_query(baseline_analysis_query_text)     
 
 #Analyze boost
 ## Add column + line chart 
