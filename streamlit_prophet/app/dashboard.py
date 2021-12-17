@@ -91,8 +91,7 @@ def run_initial_query(initial_query):
         query_text = text1+option+text3
         if option:
             run_second_query(query_text)
-
-@st.experimental_memo(suppress_st_warning=True)           
+      
 def run_second_query(second_query):
     with conn.cursor() as cur:
         cur.execute(second_query)
