@@ -117,7 +117,7 @@ def run_baseline_analysis_query(baseline_analysis_query):
         st.write(baseline)      
 
 placeholder = st.empty()
-if 'baseline_button_clicked' not in session_state:
+if 'baseline_button_clicked' not in st.session_state:
     baseline_button = placeholder.button('Run Baseline Analysis')
     
 if baseline_button:
