@@ -181,16 +181,16 @@ else:
     
 @st.experimental_memo(suppress_st_warning=True)
 def run_interference_query(interference_query):
-        with conn.cursor() as cur:
-        cur.execute(interference_query)      
-        df = cur.fetch_pandas_all()
-        st.write("Total Rows scored = 10,000.  Cost of boost = $277.40.")
-        st.write ("See a sample of your inferenced data here:")
-        st.write(df)
-        st.write("")
-        st.subheader("Darkpool Weighted Revenue Distribution to Suppliers")
-        st.write("$277.40 total boost fee, distributed to:")
-        st.image(load_image("pie.png"), use_column_width=True)
+    with conn.cursor() as cur:
+    cur.execute(interference_query)      
+    df = cur.fetch_pandas_all()
+    st.write("Total Rows scored = 10,000.  Cost of boost = $277.40.")
+    st.write ("See a sample of your inferenced data here:")
+    st.write(df)
+    st.write("")
+    st.subheader("Darkpool Weighted Revenue Distribution to Suppliers")
+    st.write("$277.40 total boost fee, distributed to:")
+    st.image(load_image("pie.png"), use_column_width=True)
 
 run_interference = st.button('Run Inteference')
 if run_inteference:
