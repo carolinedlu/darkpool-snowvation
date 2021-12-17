@@ -80,7 +80,7 @@ def init_connection():
 conn = init_connection()
 
 #Select Table
-@st.experimental_memo
+@st.experimental_memo(suppress_st_warning=True)
 def run_initial_query(initial_query):
     with conn.cursor() as cur:
         cur.execute(initial_query)
@@ -93,7 +93,7 @@ def run_initial_query(initial_query):
         if option:
             run_second_query(query_text)
 
-@st.experimental_memo            
+@st.experimental_memo(suppress_st_warning=True)           
 def run_second_query(second_query):
     with conn.cursor() as cur:
         cur.execute(second_query)
@@ -101,14 +101,14 @@ def run_second_query(second_query):
         df = cur.fetch_pandas_all()
         option2 = st.selectbox('Select your target column', df)
         
-@st.experimental_memo
+@st.experimental_memo(suppress_st_warning=True)
 def run_generic_query(generic_query):
     with conn.cursor() as cur:
         cur.execute(generic_query)
         
 run_initial_query("select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');") 
 
-@st.experimental_memo
+@st.experimental_memo(suppress_st_warning=True)
 def run_baseline_analysis_query(baseline_analysis_query):
     with conn.cursor() as cur:
         cur.execute(baseline_analysis_query)      
@@ -126,7 +126,7 @@ st.subheader("Analyze Potential Boost")
 analyze = st.checkbox("Show me my potential accuracy boost",value=False,key='analyze')
 analyze_query_text = "select distinct TRAINING_JOB as SUPPLIER, AUC, AUC-(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline')  as BOOST_POINTS, concat(to_varchar(to_numeric((AUC/(select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1)*100,10,0)),'%') as PERCENTAGE_IMPROVEMENT  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB not in ('baseline');"
 
-@st.experimental_memo
+@st.experimental_memo(suppress_st_warning=True)
 def run_analyze_query(analyze_query):
     with conn.cursor() as cur:
         cur.execute(analyze_query)
@@ -146,7 +146,7 @@ st.subheader("Pricing Model")
 pricing = st.checkbox("Show me my pricing model",value=False,key='analyze')
 pricing_query_text = "select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, concat(cast(cast(INCREASED_ACCURACY*100 as numeric)as varchar), '%') as INCREASED_ACCURACY,cast(TOTAL_ROWS as varchar) as TOTAL_ROWS from DARKPOOL_COMMON.PUBLIC.PRICING_OUTPUT join (select distinct AUC,10,2/(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1 as INCREASED_ACCURACY, TOTAL_ROWS  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'boost_all') group by 2,3;"
 
-@st.experimental_memo
+@st.experimental_memo(suppress_st_warning=True)
 def run_pricing_query(pricing_query):
     with conn.cursor() as cur:
         cur.execute(pricing_query)
@@ -167,7 +167,7 @@ st.subheader("Auto-Boost Your Model")
 boost=st.checkbox("Auto-boost my model",value=False,key='boost')
 boost_query_text="select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');"
 
-@st.experimental_memo
+@st.experimental_memo(suppress_st_warning=True)
 def run_boost_query(boost_query):
     with conn.cursor() as cur:
         cur.execute(boost_query)
@@ -177,11 +177,12 @@ def run_boost_query(boost_query):
 if boost:
     run_boost_query(boost_query_text)
 else:
-    run_generic_query(boost_query_text) 
+    run_generic_query(boost_query_text)
     
-if st.button('Run Inference'):
-    with conn.cursor() as cur:
-        cur.execute("select * from darkpool_common.ml.demand1_scoring_output limit 20;")      
+@st.experimental_memo(suppress_st_warning=True)
+def run_interference_query(interference_query):
+        with conn.cursor() as cur:
+        cur.execute(interference_query)      
         df = cur.fetch_pandas_all()
         st.write("Total Rows scored = 10,000.  Cost of boost = $277.40.")
         st.write ("See a sample of your inferenced data here:")
@@ -190,3 +191,7 @@ if st.button('Run Inference'):
         st.subheader("Darkpool Weighted Revenue Distribution to Suppliers")
         st.write("$277.40 total boost fee, distributed to:")
         st.image(load_image("pie.png"), use_column_width=True)
+
+run_interference = st.button('Run Inteference')
+if run_inteference:
+    run_interference_query("select * from darkpool_common.ml.demand1_scoring_output limit 20;")  
