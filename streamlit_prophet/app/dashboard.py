@@ -105,9 +105,7 @@ def run_generic_query(generic_query):
         cur.execute(generic_query)
         
 run_initial_query("select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');")
-st.write("Initial query runs")
 
-@st.experimental_memo(suppress_st_warning=True)
 def run_baseline_analysis_query(baseline_analysis_query):
     with conn.cursor() as cur:
         cur.execute(baseline_analysis_query)      
