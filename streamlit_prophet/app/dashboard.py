@@ -117,8 +117,12 @@ def run_baseline_analysis_query(baseline_analysis_query):
         st.write(baseline)      
 
 if st.button('Run Baseline Analysis'):
-    baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
-    run_baseline_analysis_query(baseline_analysis_query_text)     
+    if 'baseline_clicked' not in st.session_state:
+        st.session_state['baseline_button_clicked'] = 'clicked'
+        st.write('Baseline analysis has already run.')
+    else:
+        baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
+        run_baseline_analysis_query(baseline_analysis_query_text)     
 
 #Analyze boost
 ## Add column + line chart 
@@ -193,6 +197,5 @@ def run_interference_query(interference_query):
     st.image(load_image("pie.png"), use_column_width=True)
 
 interference_query_text="select * from darkpool_common.ml.demand1_scoring_output limit 20;"
-run_interference = st.button('Run Inteference')
-if run_interference:
+if st.button('Run Inteference'):
     run_interference_query(interference_query_text)  
