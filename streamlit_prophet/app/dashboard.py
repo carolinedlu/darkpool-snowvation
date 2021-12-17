@@ -127,7 +127,7 @@ analyze = st.checkbox("Show me my potential accuracy boost",value=False,key='ana
 analyze_query_text = "select distinct TRAINING_JOB as SUPPLIER, AUC, AUC-(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline')  as BOOST_POINTS, concat(to_varchar(to_numeric((AUC/(select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1)*100,10,0)),'%') as PERCENTAGE_IMPROVEMENT  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB not in ('baseline');"
 
 @experimental_memo
-def run_analyze_query(analyze_query)
+def run_analyze_query(analyze_query):
     with conn.cursor() as cur:
         cur.execute(analyze_query)
         # Return a Pandas DataFrame containing all of the results.
@@ -147,7 +147,7 @@ pricing = st.checkbox("Show me my pricing model",value=False,key='analyze')
 pricing_query_text = "select concat('$',cast(sum(SUPPLIER_REV_$) as varchar) )as PRICE, concat(cast(cast(INCREASED_ACCURACY*100 as numeric)as varchar), '%') as INCREASED_ACCURACY,cast(TOTAL_ROWS as varchar) as TOTAL_ROWS from DARKPOOL_COMMON.PUBLIC.PRICING_OUTPUT join (select distinct AUC,10,2/(select distinct AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline') - 1 as INCREASED_ACCURACY, TOTAL_ROWS  from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'boost_all') group by 2,3;"
 
 @experimental_memo
-def run_pricing_query(pricing_query)
+def run_pricing_query(pricing_query):
     with conn.cursor() as cur:
         cur.execute(pricing_query)
         # Return a Pandas DataFrame containing all of the results.
@@ -168,7 +168,7 @@ boost=st.checkbox("Auto-boost my model",value=False,key='boost')
 boost_query_text="select concat(TABLE_CATALOG,'.',TABLE_SCHEMA,'.',TABLE_NAME) from DEMAND1.INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA in ('PUBLIC');"
 
 @experimental_memo
-def run_boost_query(boost_query)
+def run_boost_query(boost_query):
     with conn.cursor() as cur:
         cur.execute(boost_query)
         df = cur.fetch_pandas_all()
