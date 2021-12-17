@@ -122,8 +122,7 @@ if 'baseline_button_clicked' not in st.session_state:
     
 if baseline_button:
     placeholder.empty()
-    if 'baseline_button_clicked' not in session_state:
-        st.session_state['baseline_button_clicked'] = 'clicked'
+    st.session_state['baseline_button_clicked'] = 'clicked'
     baseline_analysis_query_text = "select AUC from DARKPOOL_COMMON.ML.TRAINING_LOG where TRAINING_JOB = 'baseline';"
     run_baseline_analysis_query(baseline_analysis_query_text)     
 
